@@ -44,6 +44,7 @@ app.post("/", (request, response) => {
     "text"
   );
 
+  // TODO: Use async/await
   auth.accessToken(request.query.code!.toString()).then((accessToken) => {
     const idToken = jwt.decode(accessToken.id_token) as {
       sub: string; email?: string
