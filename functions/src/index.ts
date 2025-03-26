@@ -10,7 +10,7 @@ const app = express();
 
 app.use(bodyParser.urlencoded({extended: false}));
 
-app.post("/sign_in_with_apple", (request, response) => {
+app.post("/", (request, response) => {
   // Validate required query parameters
   if (!request.query.code || !request.query.firstName || !request.query.lastName) {
     const errorMessage = "Missing required parameters";
