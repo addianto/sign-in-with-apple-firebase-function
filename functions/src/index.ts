@@ -10,16 +10,28 @@ const app = express();
 
 app.use(bodyParser.urlencoded({extended: false}));
 
+app.post("/callback", (request, response) => {
+  const redirect = `intent://callback?${new URLSearchParams(request.body)
+    .toString()}#Intent;package=${process.env.ANDROID_PACKAGE_IDENTIFIER};scheme=signinwithapple;end`;
+
+  logger.info(`Redirecting to ${redirect}`);
+
+  response.redirect(307, redirect);
+});
+
 app.post("/", (request, response) => {
   // Validate required query parameters
-  if (!request.query.code || !request.query.firstName || !request.query.lastName) {
+  if (!request.query.code ||
+    !request.query.firstName ||
+    !request.query.lastName) {
     const errorMessage = "Missing required parameters";
     logger.error(errorMessage, request.query);
     response.status(400).json({error: errorMessage});
   }
 
   const config: AppleAuthConfig = {
-    client_id: request.query.useBundleId === "true" ? process.env.BUNDLE_ID! : process.env.SERVICE_ID!,
+    client_id: request.query.useBundleId === "true" ?
+      process.env.BUNDLE_ID! : process.env.SERVICE_ID!,
     team_id: process.env.TEAM_ID!,
     redirect_uri: process.env.REDIRECT_URI || "http://localhost",
     key_id: process.env.KEY_ID!,
@@ -33,7 +45,9 @@ app.post("/", (request, response) => {
   );
 
   auth.accessToken(request.query.code!.toString()).then((accessToken) => {
-    const idToken = jwt.decode(accessToken.id_token) as { sub: string; email?: string };
+    const idToken = jwt.decode(accessToken.id_token) as {
+      sub: string; email?: string
+    };
     const userId = idToken.sub;
     const userEmail = idToken.email;
     const userName = `${request.query.firstName} ${request.query.lastName}`;
