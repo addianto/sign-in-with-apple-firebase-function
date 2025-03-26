@@ -11,8 +11,8 @@ const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 
 app.post("/callback", (request, response) => {
-  const redirect = `intent://callback?${new URLSearchParams(request.body)
-    .toString()}#Intent;package=${process.env.ANDROID_PACKAGE_IDENTIFIER};scheme=signinwithapple;end`;
+  // eslint-disable-next-line max-len
+  const redirect = `intent://callback?${new URLSearchParams(request.body).toString()}#Intent;package=${process.env.ANDROID_PACKAGE_IDENTIFIER};scheme=signinwithapple;end`;
 
   logger.info(`Redirecting to ${redirect}`);
 
@@ -51,6 +51,7 @@ app.post("/", (request, response) => {
     const userId = idToken.sub;
     const userEmail = idToken.email;
     const userName = `${request.query.firstName} ${request.query.lastName}`;
+    // eslint-disable-next-line max-len
     const sessionID = `NEW SESSION ID for ${userId} / ${userEmail} / ${userName}`;
     logger.info(`sessionID = ${sessionID}`);
 
