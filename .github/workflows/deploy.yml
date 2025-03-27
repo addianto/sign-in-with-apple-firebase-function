@@ -1,0 +1,46 @@
+---
+name: Deploy Firebase Functions
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.ts'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4.2.2
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4.1.0
+      with:
+        version: 10.7.0
+        package_json_file: functions/package.json
+        run_install: false
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4.3.0
+      with:
+        node-version: 22
+        cache: 'pnpm'
+        cache-dependency-path: functions/pnpm-lock.yaml
+
+    - name: Install dependencies
+      run: pushd functions && pnpm install && popd
+
+    - name: Set up Firebase
+      uses: w9jds/setup-firebase@main
+      with:
+        tools-version: 13.35.1
+        firebase_token: ${{ secrets.FIREBASE_TOKEN }}
+
+    - name: Deploy to Firebase
+      run: firebase deploy --project $FIREBASE_PROJECT --only functions
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        FIREBASE_PROJECT: ${{ secrets.FIREBASE_PROJECT }}
