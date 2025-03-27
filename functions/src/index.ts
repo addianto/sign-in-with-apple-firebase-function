@@ -29,23 +29,43 @@ app.post("/", (request, response) => {
     response.status(400).json({error: errorMessage});
   }
 
+  if (!process.env.BUNDLE_ID || !process.env.SERVICE_ID) {
+    throw new Error("BUNDLE_ID or SERVICE_ID environment variable is required");
+  }
+
+  if (!process.env.TEAM_ID) {
+    throw new Error("TEAM_ID environment variable is required");
+  }
+
+  if (!process.env.KEY_ID) {
+    throw new Error("KEY_ID environment variable is required");
+  }
+
+  if (!process.env.KEY_CONTENTS) {
+    throw new Error("KEY_CONTENTS environment variable is required");
+  }
+
   const config: AppleAuthConfig = {
     client_id: request.query.useBundleId === "true" ?
-      process.env.BUNDLE_ID! : process.env.SERVICE_ID!,
-    team_id: process.env.TEAM_ID!,
+      process.env.BUNDLE_ID : process.env.SERVICE_ID,
+    team_id: process.env.TEAM_ID,
     redirect_uri: process.env.REDIRECT_URI || "http://localhost",
-    key_id: process.env.KEY_ID!,
+    key_id: process.env.KEY_ID,
     scope: "email",
   };
 
   const auth = new AppleAuth(
     config,
-    process.env.KEY_CONTENTS!.replace(/\|/g, "\n"),
+    process.env.KEY_CONTENTS.replace(/\|/g, "\n"),
     "text"
   );
 
+  if (!request.query.code) {
+    throw new Error("The code parameter is missing");
+  }
+
   // TODO: Use async/await
-  auth.accessToken(request.query.code!.toString()).then((accessToken) => {
+  auth.accessToken(request.query.code.toString()).then((accessToken) => {
     const idToken = jwt.decode(accessToken.id_token) as {
       sub: string; email?: string
     };
