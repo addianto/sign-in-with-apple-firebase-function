@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import * as logger from "firebase-functions/logger";
 import AppleAuth, {AppleAuthConfig} from "apple-auth";
 
-import express from "express";
+import express, {Response} from "express";
 import jwt from "jsonwebtoken";
 import bodyParser from "body-parser";
 
@@ -24,25 +24,29 @@ app.post("/", (request, response) => {
   if (!request.query.code ||
     !request.query.firstName ||
     !request.query.lastName) {
-    const errorMessage = "Missing required parameters";
-    logger.error(errorMessage, request.query);
-    response.status(400).json({error: errorMessage});
+    _errorResponse(response, "Missing required parameters");
+    throw new Error();
   }
 
   if (!process.env.BUNDLE_ID || !process.env.SERVICE_ID) {
-    throw new Error("BUNDLE_ID or SERVICE_ID environment variable is required");
+    // eslint-disable-next-line max-len
+    _errorResponse(response, "BUNDLE_ID or SERVICE_ID environment variable is required");
+    throw new Error();
   }
 
   if (!process.env.TEAM_ID) {
-    throw new Error("TEAM_ID environment variable is required");
+    _errorResponse(response, "TEAM_ID environment variable is required");
+    throw new Error();
   }
 
   if (!process.env.KEY_ID) {
-    throw new Error("KEY_ID environment variable is required");
+    _errorResponse(response, "KEY_ID environment variable is required");
+    throw new Error();
   }
 
   if (!process.env.KEY_CONTENTS) {
-    throw new Error("KEY_CONTENTS environment variable is required");
+    _errorResponse(response, "KEY_CONTENTS environment variable is required");
+    throw new Error();
   }
 
   const config: AppleAuthConfig = {
@@ -61,7 +65,8 @@ app.post("/", (request, response) => {
   );
 
   if (!request.query.code) {
-    throw new Error("The code parameter is missing");
+    _errorResponse(response, "The code parameter is missing");
+    throw new Error();
   }
 
   // TODO: Use async/await
@@ -82,5 +87,10 @@ app.post("/", (request, response) => {
     response.status(500).json({error: "Internal server error"});
   });
 });
+
+const _errorResponse = (response: Response, message: string) => {
+  logger.error(message);
+  response.status(400).json({error: message});
+};
 
 export const signInWithApple = functions.https.onRequest(app);
