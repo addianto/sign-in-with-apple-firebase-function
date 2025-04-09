@@ -33,6 +33,9 @@ jobs:
     - name: Install dependencies
       run: pushd functions && pnpm install && popd
 
+    - name: Set up dotenv file
+      run: echo "${{ secrets.ENV_FILE }}" > functions/.env
+
     - name: Set up Firebase
       uses: w9jds/setup-firebase@main
       with:
